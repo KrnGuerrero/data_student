@@ -28,6 +28,12 @@ typedef struct student
     student *next = NULL;
 } student;
 
+typedef struct outList
+{
+    student *studentOut;
+    outList *next;
+} outList;
+
 student *root = NULL;
 
 /*
@@ -107,6 +113,50 @@ student *addPeriods(student *data)
 }
 
 /*
+@param data= información del estudiante.
+@return data= información del estudiante con status cambiado.
+*/
+student *setStudentStatus(student *data)
+{
+    float averageCareer = data->totalScores / data->totalPeriods;
+    if (averageCareer < 2.5f)
+    {
+        strcpy(data->status, "FUERA");
+    }
+    else if (averageCareer < 2.9f)
+    {
+        strcpy(data->status, "PRUEBA");
+    }
+    else
+    {
+        strcpy(data->status, "NORMAL");
+    }
+    return data;
+}
+
+/*
+@param
+@return data= información del estudiante con status cambiado para guardarlo.
+*/
+student *setStudentStatus()
+{
+    student *data;
+    int ident;
+    printf("Ingrese su id: ");
+    scanf("%d", &ident);
+    data = findStudent(ident);
+    if (data != NULL)
+    {
+        data = setStudentStatus(data);
+    }
+    else
+    {
+        printf("Almuno no registrado.");
+        return data;
+    }
+}
+
+/*
 @param studentCode = codigo del estudiante.
 @return data = estudiante para registrar.
 */
@@ -126,7 +176,8 @@ student *createStudent(int studentCode)
     scanf("%d", &data->telephone);
     strcpy(data->status, "NORMAL");
     data = addPeriods(data);
-    data->next=NULL;
+    data = setStudentStatus(data);
+    data->next = NULL;
     return data;
 }
 
@@ -159,68 +210,24 @@ void registerStudent()
     }
 }
 
-/*
-@param data= información del estudiante.
-@return data= información del estudiante con status cambiado.
-*/
-student* setStudentStatus(student *data)
-{
-	float averageCareer = data->totalScores / data->totalPeriods;
-	if (averageCareer < 2.5f)
-	{
-		strcpy(data->status, "FUERA");
-	}
-	else if (averageCareer < 2.9f)
-	{
-		strcpy(data->status, "PRUEBA");
-	}
-	else
-	{
-		strcpy(data->status, "NORMAL");
-	}
-	return data;
-}
-
-/*
-@param
-@return data= información del estudiante con status cambiado para guardarlo.
-*/
-student* setStudentStatus()
-{
-	student *data;
-	int ident;
-	printf("Ingrese su id: ");
-	scanf("%d", &ident);
-	data = findStudent(ident);
-	if (data != NULL)
-	{
-		data = setStudentStatus(data);
-	}
-	else
-	{
-		printf("Almuno no registrado.");
-		return data;
-	}
-}
-
 void registerPeriods()
 {
-	system("cls");
-	student *data;
-	int code;
-	printf("Ingrese su id: ");
-	scanf("%d", &code);
-	data = findStudent(code);
-	if (data != NULL)
-	{
-		data = addPeriods(data);
-		data = setStudentStatus(data);
-	}
-	else
-	{
-		printf("Alumno no registrado.");
-	}
-	system("cls");
+    system("cls");
+    student *data;
+    int code;
+    printf("Ingrese su id: ");
+    scanf("%d", &code);
+    data = findStudent(code);
+    if (data != NULL)
+    {
+        data = addPeriods(data);
+        data = setStudentStatus(data);
+    }
+    else
+    {
+        printf("Alumno no registrado.");
+    }
+    system("cls");
 }
 
 /*
@@ -291,32 +298,78 @@ void showStudent()
 @param data= información del estudiante.
 @return data= información del estudiante con status cambiado.
 */
-void showOutStudents()
+void studentsOutList()
 {
-	student *temp = root;
-	while (temp != NULL)
-	{
-		if (strcmp(temp->status, "FUERA") == 0)
-		{
-			showDataStudent(temp);
-			showDataScores(temp->totalPeriods, temp->rootPeriod);
-			printf("\n");
-		}
+    student *temp = root;
+    outList *newList = NULL;
+    while (temp != NULL)
+    {
+        if (strcmp(temp->status, "FUERA") == 0)
+        {
+            if (newList == NULL)
+            {
+                newList = (outList *)malloc(sizeof(outList));
+                newList->studentOut = temp;
+                newList->next = NULL;
+                showDataStudent(newList->studentOut);
+                showDataScores(newList->studentOut->totalPeriods, newList->studentOut->rootPeriod);
+                printf("\n");
+            }
+            else
+            {
+                newList->studentOut = temp;
+                newList->next = NULL;
+                showDataStudent(newList->studentOut);
+                showDataScores(newList->studentOut->totalPeriods, newList->studentOut->rootPeriod);
+                printf("\n");
+            }
+        }
         temp = temp->next;
-	}
+    }
 }
 
+
+/*
+@param data= información del estudiante.
+@return data= información del estudiante con status cambiado.
+*/
+void showOutStudents()
+{
+    student *temp = root;
+    while (temp != NULL)
+    {
+        if (strcmp(temp->status, "FUERA") == 0)
+        {
+            showDataStudent(temp);
+            showDataScores(temp->totalPeriods, temp->rootPeriod);
+            printf("\n");
+        }
+        temp = temp->next;
+    }
+}
+
+void showAllStudent(student *temp){
+    while (temp != NULL)
+    {
+        showDataStudent(temp);
+        showDataScores(temp->totalPeriods, temp->rootPeriod);
+        temp = temp->next;
+        printf("\n\n\n");
+    }
+}
 void showAllStudent()
 {
-	system("cls");
-	student *temp=root;
-	while (temp != NULL)
-	{
-		showDataStudent(temp);
-		showDataScores(temp->totalPeriods, temp->rootPeriod);
-        temp = temp->next;
-		printf("\n\n\n");
-	}
+    system("cls");
+    student *temp = root;
+    char choose = 'T';
+    cout << "\nDesea ver la lista con todos los estudiantes o solo los que estan fuera? (T/F) \n";
+    cin >> choose;
+    if (toupper(choose) == 'F'){
+        studentsOutList();
+    }
+    else{
+        showAllStudent(temp);
+    }
 }
 
 int menu()
@@ -327,9 +380,10 @@ int menu()
     printf("2. Registrar periodo.\n");
     printf("3. Definir estado.\n");
     printf("4. Mostrar estudiante.\n");
-    printf("5. Mostrar estudiantes de estado FUERA.\n");
-    printf("6. Mostrar todos los estudiantes registrados.\n");
-    printf("7. Salir.\n\n");
+    printf("5. Mostrar lista de estudiantes FUERA.\n");
+    printf("6. Mostrar estudiantes de estado FUERA.\n");
+    printf("7. Mostrar todos los estudiantes registrados.\n");
+    printf("8. Salir.\n\n");
     printf("Ingrese la opci%cn a realizar: ", 162);
     scanf("%d", &option);
     system("cls");
@@ -338,7 +392,6 @@ int menu()
 
 int main()
 {
-    student data;
     int op = 0;
     do
     {
@@ -358,15 +411,18 @@ int main()
             showStudent();
             break;
         case 5:
-            showOutStudents();
+            studentsOutList();
             break;
         case 6:
-            showAllStudent();
+            showOutStudents();
             break;
         case 7:
+            showAllStudent();
+            break;
+        case 8:
             printf("\nHasta luego.");
             break;
         }
-    } while (op != 7);
+    } while (op != 8);
     return 0;
 }
